@@ -97,7 +97,7 @@ describe("algorithms/hmac", function() {
     it("performs " + v.alg + " (" + v.desc + ")" + " generation", signrunner);
     it("performs " + v.alg + " (" + v.desc + ")" + " verification", vfyrunner);
 
-    it('should pass verification?', function() {
+    it('should it not fail verification? (truncated auth tag)', function() {
       var tamperedMac = v.mac.substring(0, Math.floor(Math.random() * v.mac.length))
       var key = new Buffer(v.key, "hex"),
       msg = new Buffer(v.msg, "hex"),
@@ -105,6 +105,17 @@ describe("algorithms/hmac", function() {
       var promise = algorithms.verify(v.alg, key, msg, mac, {loose: true});
       promise = promise.then(function(result) {
         assert.fail(null, null, 'why is the loose verification not checking the whole tag?');
+      });
+      return promise
+    })
+    it('should it not fail verification? (missing auth tag)', function() {
+      var tamperedMac = ""
+      var key = new Buffer(v.key, "hex"),
+      msg = new Buffer(v.msg, "hex"),
+      mac = new Buffer(tamperedMac, "hex");
+      var promise = algorithms.verify(v.alg, key, msg, mac, {loose: true});
+      promise = promise.then(function(result) {
+        assert.fail(null, null, 'why is the loose verification accepting missing auth tags?');
       });
       return promise
     })
