@@ -96,5 +96,31 @@ describe("algorithms/hmac", function() {
 
     it("performs " + v.alg + " (" + v.desc + ")" + " generation", signrunner);
     it("performs " + v.alg + " (" + v.desc + ")" + " verification", vfyrunner);
+
+    it('should pass verification?', function() {
+      var tamperedMac = v.mac.substring(0, Math.floor(Math.random() * v.mac.length))
+      var key = new Buffer(v.key, "hex"),
+      msg = new Buffer(v.msg, "hex"),
+      mac = new Buffer(tamperedMac, "hex");
+      var promise = algorithms.verify(v.alg, key, msg, mac, {loose: true});
+      promise = promise.then(function(result) {
+        assert.fail(null, null, 'why is the loose verification not checking the whole tag?');
+      });
+      return promise
+    })
+    it('should not pass verification', function(){
+      var tamperedMac = v.mac.substring(0, Math.floor(Math.random() * v.mac.length))
+      var key = new Buffer(v.key, "hex"),
+      msg = new Buffer(v.msg, "hex"),
+      mac = new Buffer(tamperedMac, "hex");
+      var promise = algorithms.verify(v.alg, key, msg, mac, {loose: false});
+      promise = promise.then(function(result) {
+        assert.fail(null, null, 'should have failed verification');
+      }).catch(function(err){
+        assert.isOk(err, 'setting hmac to loose: false catches the tampered tag')
+      });
+      return promise
+    })
+
   });
 });

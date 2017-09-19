@@ -69,5 +69,22 @@ describe("algorithms/aes-cbc-hmac-sha2", function() {
 
     it("performs " + v.alg + " (" + v.desc + ") encryption", encrunner);
     it("performs " + v.alg + " (" + v.desc + ") decryption", decrunner);
+
+    it('should not pass verification', function() {
+      var tamperedTag = v.tag.substring(0, Math.floor(Math.random() * v.tag.length))
+      var key = new Buffer(v.key, "hex"),
+      pdata = new Buffer(v.plaintext, "hex"),
+      cdata = new Buffer(v.ciphertext, "hex"),
+      props = {
+        iv: new Buffer(v.iv, "hex"),
+        aad: new Buffer(v.aad, "hex"),
+        tag: new Buffer(tamperedTag, "hex")
+      };
+      var promise = algorithms.decrypt(v.alg, key, cdata, props);
+      promise = promise.then(function(result) {
+        assert.fail(null, null, 'why is aes-cbc-hmac-sha2 using loose tag verification?');
+      });
+      return promise
+    })
   });
 });
